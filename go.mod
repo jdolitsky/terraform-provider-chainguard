@@ -3,7 +3,7 @@ module github.com/chainguard-dev/terraform-provider-chainguard
 go 1.23.0
 
 require (
-	chainguard.dev/sdk v0.1.24
+	chainguard.dev/sdk v0.1.25-0.20240830165017-05424c0209d6
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-framework v1.11.0

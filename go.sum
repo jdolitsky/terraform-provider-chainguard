@@ -2,8 +2,8 @@ chainguard.dev/go-grpc-kit v0.17.5 h1:y0MHgqm3v0LKKQfxPJV57wkXxa8uMSpNTjhtHbNh1D
 chainguard.dev/go-grpc-kit v0.17.5/go.mod h1:vQGcwZiX6jXwhyLPCZwVMvjITD+XcrSmQzuCTW/XcVc=
 chainguard.dev/go-oidctest v0.3.1 h1:Q1OvIVIcl+i0hqgmrXZLeDhSjtDjbnLEBASoTbhyuBY=
 chainguard.dev/go-oidctest v0.3.1/go.mod h1:TDN6MPJ6BEzWtorS9/dHzzGiaBpPRnRONv2SE0mqitU=
-chainguard.dev/sdk v0.1.24 h1:J+AdvW5obfSZlrBIlgfOttS0VU7m2yLQpI3KCCtjUr4=
-chainguard.dev/sdk v0.1.24/go.mod h1:LJYP/iD6G9Rfz/9G8koKxxvM36ofaFfv/pYus0W+X98=
+chainguard.dev/sdk v0.1.25-0.20240830165017-05424c0209d6 h1:obO1iMkDfC7b8K1+FKZARVN8A7be0W/myyMYRZ/v2lU=
+chainguard.dev/sdk v0.1.25-0.20240830165017-05424c0209d6/go.mod h1:LJYP/iD6G9Rfz/9G8koKxxvM36ofaFfv/pYus0W+X98=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
