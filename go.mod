@@ -1,6 +1,6 @@
 module github.com/chainguard-dev/terraform-provider-chainguard
 
-go 1.23.0
+go 1.23.1
 
 require (
 	chainguard.dev/sdk v0.1.25-0.20240830165017-05424c0209d6
