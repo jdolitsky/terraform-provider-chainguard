@@ -7,6 +7,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -34,8 +35,9 @@ type versionsDataSource struct {
 }
 
 type versionsDataSourceModel struct {
-	Package  types.String `tfsdk:"name"`
-	Metadata types.Object `tfsdk:"metadata"`
+	Package     types.String `tfsdk:"package"`
+	RawMetadata types.String `tfsdk:"raw_metadata"`
+	//Metadata types.Object `tfsdk:"metadata"`
 }
 
 func (d versionsDataSourceModel) InputParams() string {
@@ -58,31 +60,53 @@ func (d *versionsDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 		Attributes: map[string]schema.Attribute{
 			"package": schema.StringAttribute{
 				Description: "The name of the package to lookup",
-				Optional:    false,
+				Required:    true,
 			},
-			"metadata": schema.SingleNestedAttribute{
-				Optional: false,
-				Attributes: map[string]schema.Attribute{
-					"eolVersions":          versionSchema(),
-					"lastUpdatedTimestamp": schema.StringAttribute{},
-					"latestVersion":        schema.StringAttribute{},
-					"versions":             versionSchema(),
+			"raw_metadata": schema.StringAttribute{
+				Computed: true,
+			},
+			/*
+				"metadata": schema.SingleNestedAttribute{
+					Computed: true,
+					Attributes: map[string]schema.Attribute{
+						"eol_versions": versionSchema(),
+						"last_updated_timestamp": schema.StringAttribute{
+							Required: true,
+						},
+						"latest_version": schema.StringAttribute{
+							Required: true,
+						},
+						"versions": versionSchema(),
+					},
 				},
-			},
+			*/
 		},
 	}
 }
 
 func versionSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
+		Required: true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				"eolDate":     schema.StringAttribute{},
-				"exists":      schema.BoolAttribute{},
-				"fips":        schema.BoolAttribute{},
-				"lts":         schema.StringAttribute{},
-				"releaseDate": schema.StringAttribute{},
-				"version":     schema.StringAttribute{},
+				"eol_date": schema.StringAttribute{
+					Required: true,
+				},
+				"exists": schema.BoolAttribute{
+					Required: true,
+				},
+				"fips": schema.BoolAttribute{
+					Required: true,
+				},
+				"lts": schema.StringAttribute{
+					Required: true,
+				},
+				"release_date": schema.StringAttribute{
+					Required: true,
+				},
+				"version": schema.StringAttribute{
+					Required: true,
+				},
 			},
 		},
 	}
@@ -98,17 +122,65 @@ func (d *versionsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	tflog.Info(ctx, fmt.Sprintf("read versions data-source request: package=%s", data.Package))
 
 	f := &registry.PackageVersionMetadataRequest{
-		Package: data.Package.String(),
+		Package: data.Package.ValueString(),
 	}
 	packageVersionMetadata, err := d.prov.client.Registry().Registry().GetPackageVersionMetadata(ctx, f)
 	if err != nil {
-		resp.Diagnostics.Append(errorToDiagnostic(err, "failed to get package version metadata"))
+		// TODO: address var.variant == "fips"
+		data.RawMetadata = types.StringValue(`{"lastUpdatedTimestamp": "", "latestVersion": "", "eolVersions": [], "versions": [{"version": "", "exists": true, "fips": false}]}`)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		//resp.Diagnostics.Append(errorToDiagnostic(err, "failed to get package version metadata"))
 		return
 	}
 
-	// TODO: hmmm
-	m, _ := types.ObjectValueFrom(ctx, nil, &packageVersionMetadata)
-	data.Metadata = m
-
+	b, err := json.Marshal(packageVersionMetadata)
+	if err != nil {
+		resp.Diagnostics.Append(errorToDiagnostic(err, "unable to convert package version metadata to JSON"))
+		return
+	}
+	data.RawMetadata = types.StringValue(string(b))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	/*
+		tmp := map[interface{}]interface{}{
+			"metadata": map[string]string{
+				"last_updated_timestamp": "abc",
+			},
+		}
+		tmp := struct {
+			last_updated_timestamp string
+		}{
+			last_updated_timestamp: "abc",
+		}*/
+
+	/*
+		m, diag := types.ObjectValueFrom(ctx, data.Metadata.AttributeTypes(ctx), &tmp)
+		if diag.HasError() {
+			resp.Diagnostics.Append(diag.Errors()...)
+			return
+		}
+
+		panic("GOT HERE")
+		data.Metadata = m
+	*/
 }
+
+/* terraform {
+  required_providers {
+    chainguard = { source = "chainguard-dev/chainguard" }
+  }
+
+  backend "inmem" {}
+}
+
+provider "chainguard" {
+  console_api = "https://console-api.enforce.dev"
+}
+
+data "chainguard_versions" "versions" {
+  package = "bazelx"
+}
+
+output "versions" {
+  value = data.chainguard_versions.versions.raw_metadata
+}
+*/
