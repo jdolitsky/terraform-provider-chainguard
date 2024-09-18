@@ -34,7 +34,8 @@ type versionsDataSource struct {
 }
 
 type versionsDataSourceModel struct {
-	Package types.String `tfsdk:"name"`
+	Package  types.String `tfsdk:"name"`
+	Metadata types.Object `tfsdk:"metadata"`
 }
 
 func (d versionsDataSourceModel) InputParams() string {
@@ -59,6 +60,30 @@ func (d *versionsDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 				Description: "The name of the package to lookup",
 				Optional:    false,
 			},
+			"metadata": schema.SingleNestedAttribute{
+				Optional: false,
+				Attributes: map[string]schema.Attribute{
+					"eolVersions":          versionSchema(),
+					"lastUpdatedTimestamp": schema.StringAttribute{},
+					"latestVersion":        schema.StringAttribute{},
+					"versions":             versionSchema(),
+				},
+			},
+		},
+	}
+}
+
+func versionSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"eolDate":     schema.StringAttribute{},
+				"exists":      schema.BoolAttribute{},
+				"fips":        schema.BoolAttribute{},
+				"lts":         schema.StringAttribute{},
+				"releaseDate": schema.StringAttribute{},
+				"version":     schema.StringAttribute{},
+			},
 		},
 	}
 }
@@ -81,6 +106,9 @@ func (d *versionsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	fmt.Printf("%w", packageVersionMetadata)
-	panic("not implemented")
+	// TODO: hmmm
+	m, _ := types.ObjectValueFrom(ctx, nil, &packageVersionMetadata)
+	data.Metadata = m
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
